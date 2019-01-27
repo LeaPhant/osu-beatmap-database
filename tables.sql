@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `difficulty_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- Data exporting was unselected.
 -- Dumping structure for table osu.tag
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `tag_type` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` tinytext COLLATE utf8_bin NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 -- Data exporting was unselected.
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
