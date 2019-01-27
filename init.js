@@ -18,8 +18,6 @@ function fetchMapset(mapset_id){
             setTimeout(function(){ fetchMapset(++mapset_id); }, 250);
         }
 
-	console.log(beatmaps);
-
         beatmaps.forEach(function(b, index){
             let query = `
                 INSERT INTO beatmap
@@ -50,8 +48,4 @@ function fetchMapset(mapset_id){
     });
 }
 
-connection.query('SELECT beatmapset_id FROM beatmap ORDER BY beatmapset_id DESC LIMIT 1', function(err, results){
-    if(err) throw err;
-    //fetchMapset(216902);
-    fetchMapset(results[0].beatmapset_id + 1);
-});
+fetchMapset(1);
