@@ -1,3 +1,7 @@
+### Disclaimer
+
+Using the event feed for beatmap updates is [apparently incomplete](https://twitter.com/LazeyLea/status/1089718571330990080), as such this project is currently on hold until I'll find a better solution for keeping up to date without brute forcing.
+
 # osu-beatmap-database
 Some tools for keeping a local database with all osu! beatmaps + some additional gimmicks (WIP)
 
