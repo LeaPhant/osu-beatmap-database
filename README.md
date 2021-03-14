@@ -1,49 +1,42 @@
-### Disclaimer
-
-Using the event feed for beatmap updates is [apparently incomplete](https://twitter.com/LazeyLea/status/1089718571330990080), as such this project is currently on hold until I'll find a better solution for keeping up to date without brute forcing.
-
 # osu-beatmap-database
-Some tools for keeping a local database with all osu! beatmaps + some additional gimmicks (WIP)
+tool for keeping an up-to-date database of all ranked/approved/loved/qualified beatmaps with their difficulty data and max possible score
 
 ### Prerequisites
-
-- MySQL Server (recommendation: https://mariadb.org/)
-- A database already set up (I'll call it `$OSU_DB`)
-- [node.js](https://nodejs.org/)
-- osu! API Key (get one [here](https://old.ppy.sh/p/api))
+- Linux system with root access
+- MySQL Server (recommendation: https://mariadb.org/), should be set up for root access without password otherwise you need to edit setup.sh
+- [Node.js](https://nodejs.org/)
+- [Microsoft .NET](https://dotnet.microsoft.com/download) (runs on all platforms)
+- osu! API Key (get one [here](https://osu.ppy.sh/p/api))
 
 ### Setup
 
 ```Bash
-git clone https://github.com/LazyLea/osu-beatmap-database.git
+git clone https://github.com/LeaPhant/osu-beatmap-database.git
 npm i
-npm -g i pm2 # this might require sudo
-cat tables.sql | mysql -u root -p $OSU_DB
+sudo npm -g i pm2
+chmod +x ./setup.sh
+./setup.sh # sets up database and osu-difficulty-calculator, will ask for root password
+node init # generates config and asks for osu! api key, then does checks
 ```
 
-Now fill in your data in `credentials.json`.
-
-Then start the services which are keeping the database up to date.
+Then start the service to keep the beatmaps up-to-date and run the http server
 
 ```Bash
-pm2 start --name event-server event-server.js
-pm2 start --name beatmap-update-handler beatmap-update-handler.js
+pm2 start --name osu-beatmap-database ./src/index
 ```
 
-### First run
+### API
 
-Now you'll get new and updated beatmaps, but we're still missing the beatmaps from before the database was created. For this initial step I wrote a kinda messy script which starts at https://osu.ppy.sh/s/1 and then goes all the way up - which takes an eternity. 
+Unless you changed the port the API will be available on http://127.0.0.1:16791 with the following endpoints:
 
-```Bash
-pm2 start --name osudb-init init.js
-```
+#### `/b/BEATMAP_ID?mode=0-3` (accepts multiple comma-separated beatmap ids)
 
-Expect this script to run for 1-2 weeks. You can check the current status with `pm2 log osudb-init`.
+Returns info and difficulty data for one or more beatmaps
 
-### Difficulty calculation
+#### `/beatmaps?mode=0-3`
 
-TODO
+Returns arrays with beatmap ids of all ranked/approved, loved and qualified beatmaps + the beatmap info for the newest map of each category
 
-### Beatmap tagging
+--- 
 
-TODO
+`mode` is a number from 0-3 where 0 is standard, 1 is taiko, 2 is catch the beat and 3 is mania. Passing this parameter will return data for the convert. If left out it assumes standard, unless it's a map specifically mapped for another mode.

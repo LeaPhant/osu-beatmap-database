@@ -1,10 +1,3 @@
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET NAMES utf8 */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-
--- Dumping structure for table osu.beatmap
 CREATE TABLE IF NOT EXISTS `beatmap` (
   `beatmap_id` int(11) NOT NULL,
   `beatmapset_id` int(11) DEFAULT NULL,
@@ -21,8 +14,9 @@ CREATE TABLE IF NOT EXISTS `beatmap` (
   `od` float DEFAULT NULL,
   `ar` float DEFAULT NULL,
   `hp` float DEFAULT NULL,
-  `approved_date` date DEFAULT NULL,
-  `last_updated_date` date DEFAULT NULL,
+  `approved_date` datetime DEFAULT NULL,
+  `submitted_date` datetime DEFAULT NULL,
+  `last_updated_date` datetime DEFAULT NULL,
   `bpm` int(11) DEFAULT NULL,
   `bpm_min` int(11) DEFAULT NULL,
   `bpm_max` int(11) DEFAULT NULL,
@@ -42,6 +36,14 @@ CREATE TABLE IF NOT EXISTS `beatmap` (
   `plays` int(11) DEFAULT NULL,
   `passes` int(11) DEFAULT NULL,
   `recalculate` tinyint(4) DEFAULT 1,
+  `max_score` int(11) DEFAULT NULL,
+  `packs` text COLLATE utf8_bin DEFAULT NULL,
+  `rating` float DEFAULT NULL,
+  `video` tinyint(1) DEFAULT NULL,
+  `storyboard` tinyint(1) DEFAULT NULL,
+  `download_unavailable` tinyint(1) DEFAULT NULL,
+  `audio_unavailable` tinyint(1) DEFAULT NULL,
+  `file_md5` char(32) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`beatmap_id`),
   KEY `mode` (`mode`),
   KEY `Approved` (`approved`),
@@ -55,47 +57,75 @@ CREATE TABLE IF NOT EXISTS `beatmap` (
   FULLTEXT KEY `Tags` (`tags`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
--- Data exporting was unselected.
--- Dumping structure for table osu.difficulty
-CREATE TABLE IF NOT EXISTS `difficulty` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `beatmap_id` int(11) DEFAULT NULL,
-  `mods` int(11) DEFAULT 0,
-  `mode` tinyint(4) DEFAULT 0,
-  `type` tinyint(4) DEFAULT NULL,
-  `value` double DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `mode` (`mode`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+CREATE TABLE IF NOT EXISTS `osu_beatmaps` (
+  `beatmap_id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
+  `beatmapset_id` mediumint(8) unsigned DEFAULT NULL,
+  `user_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `filename` varchar(150) COLLATE utf8_bin DEFAULT NULL,
+  `checksum` varchar(32) CHARACTER SET utf8 DEFAULT NULL,
+  `version` varchar(80) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `total_length` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  `hit_length` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  `countTotal` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `countNormal` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `countSlider` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `countSpinner` smallint(5) unsigned NOT NULL DEFAULT 0,
+  `diff_drain` float unsigned NOT NULL DEFAULT 0,
+  `diff_size` float unsigned NOT NULL DEFAULT 0,
+  `diff_overall` float unsigned NOT NULL DEFAULT 0,
+  `diff_approach` float unsigned NOT NULL DEFAULT 0,
+  `playmode` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `approved` tinyint(4) NOT NULL DEFAULT 0,
+  `last_update` timestamp NOT NULL DEFAULT current_timestamp(),
+  `difficultyrating` float NOT NULL DEFAULT 0,
+  `playcount` int(10) unsigned NOT NULL DEFAULT 0,
+  `passcount` int(10) unsigned NOT NULL DEFAULT 0,
+  `orphaned` tinyint(1) NOT NULL DEFAULT 0,
+  `youtube_preview` varchar(50) COLLATE utf8_bin DEFAULT NULL,
+  `score_version` tinyint(4) NOT NULL DEFAULT 1,
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `bpm` float DEFAULT NULL,
+  PRIMARY KEY (`beatmap_id`),
+  KEY `beatmapset_id` (`beatmapset_id`),
+  KEY `filename` (`filename`),
+  KEY `checksum` (`checksum`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2678466 DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC;
 
--- Data exporting was unselected.
--- Dumping structure for table osu.difficulty_type
-CREATE TABLE IF NOT EXISTS `difficulty_type` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` text CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+CREATE TABLE IF NOT EXISTS `osu_beatmap_difficulty` (
+  `beatmap_id` int(11) unsigned NOT NULL,
+  `mode` tinyint(4) NOT NULL DEFAULT 0,
+  `mods` int(101) unsigned NOT NULL,
+  `diff_unified` float NOT NULL,
+  `last_update` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`beatmap_id`,`mode`,`mods`),
+  KEY `diff_sort` (`mode`,`mods`,`diff_unified`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Data exporting was unselected.
--- Dumping structure for table osu.tag
-CREATE TABLE IF NOT EXISTS `tag` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `beatmap_id` int(11) NOT NULL DEFAULT 0,
-  `mode` int(11) NOT NULL DEFAULT 0,
-  `type` int(11) NOT NULL DEFAULT 0,
-  `value` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+CREATE TABLE IF NOT EXISTS `osu_beatmap_difficulty_attribs` (
+  `beatmap_id` int(11) unsigned NOT NULL,
+  `mode` tinyint(3) unsigned NOT NULL,
+  `mods` int(11) unsigned NOT NULL,
+  `attrib_id` tinyint(3) unsigned NOT NULL COMMENT 'see osu_difficulty_attribs table',
+  `value` float DEFAULT NULL,
+  PRIMARY KEY (`beatmap_id`,`mode`,`mods`,`attrib_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Data exporting was unselected.
--- Dumping structure for table osu.tag_type
-CREATE TABLE IF NOT EXISTS `tag_type` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` tinytext COLLATE utf8_bin NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+CREATE TABLE IF NOT EXISTS `osu_difficulty_attribs` (
+  `attrib_id` smallint(5) unsigned NOT NULL,
+  `name` varchar(256) NOT NULL DEFAULT '',
+  `visible` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`attrib_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Data exporting was unselected.
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+INSERT INTO osu_difficulty_attribs 
+  (attrib_id, name, visible)
+VALUES
+  (1, 'Aim', 1),
+  (3, 'Speed', 1),
+  (5, 'OD', 0),
+  (7, 'AR', 0),
+  (9, 'Max combo', 0),
+  (11, 'Strain', 1),
+  (13, 'Hit window 300', 0),
+  (15, 'Score multiplier', 0)

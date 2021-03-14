@@ -1,51 +1,90 @@
-process.on('uncaughtException', function(err) {
-  console.log('Caught exception: ' + err);
+const mysql = require('mysql');
+const fs = require('fs');
+const util = require('util');
+const readline = require('readline');
+const fetch = require('node-fetch');
+
+const exists = async path => {
+    try{
+        await fs.promises.access(path, fs.constants.F_OK);
+
+        return true;
+    }catch(e){
+        return false;
+    }
+};
+
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
 });
 
-const mysql = require('mysql');
-const nodesu = require('nodesu');
+const question = util.promisify(rl.question).bind(rl);
 
-const credentials = require('./credentials.json');
+let config = {
+    "HTTP_PORT": 16791,
+    "OSU_API_KEY": "",
+    "OSU_FILES_PATH": "./files/beatmaps",
+    "OSU_DIFFCALC_PATH": "",
+    "MYSQL": {
+        "host": "localhost",
+        "user": "osudb",
+        "password": "",
+        "database": "osu"
+    }
+};
 
-const osuApi = new nodesu.Client(credentials.OSU_API_KEY);
+async function main(){
+    if(await exists('./config.json'))
+        config = Object.assign(config, require('./config.json'));
 
-var connection = mysql.createPool(credentials.MYSQL);
+    if(process.argv[2])
+        config.OSU_DIFFCALC_PATH = process.argv[2];
 
-function fetchMapset(mapset_id){
-    osuApi.beatmaps.getBySetId(mapset_id).then(beatmaps => {
-        if(beatmaps.length == 0){
-            console.log('/s/', mapset_id, 'not found');
-            setTimeout(function(){ fetchMapset(++mapset_id); }, 250);
+    if(config.OSU_API_KEY == null || config.OSU_API_KEY.length == 0){
+        try{
+            config.OSU_API_KEY = await question('Enter osu! api key from https://osu.ppy.sh/p/api/: ');
+        }catch(e){
+            config.OSU_API_KEY = e;
         }
+    }
 
-        beatmaps.forEach(function(b, index){
-            let query = `
-                INSERT INTO beatmap
-                    (beatmap_id, beatmapset_id, approved, total_length, hit_length,
-                     version, artist, title, creator, creator_id, mode, cs, od, ar, hp,
-                     approved_date, last_updated_date, bpm, source, tags, genre_id,
-                     language_id, max_combo, star_rating, favorites, plays, passes)
-                VALUES
-                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+    config.OSU_API_KEY = config.OSU_API_KEY.trim();
 
-            connection.query(query,
-                [b.beatmap_id, b.beatmapset_id, b.approved, b.total_length, b.hit_length,
-                 b.version, b.artist, b.title, b.creator, b.creator_id, b.mode, b.diff_size,
-                 b.diff_overall, b.diff_approach, b.diff_drain, b.approved_date, b.last_update,
-                 b.bpm, b.source, b.tags, b.genre_id, b.language_id, b.max_combo,
-                 b.difficultyrating, b.favourite_count, b.playcount, b.passcount], function(err){
-                    if(err) console.error(err);
-                    else console.log('inserted', b.beatmap_id, b.artist, ' - ', b.title, '[', b.version, ']');
-                    if(index + 1 == beatmaps.length)
-                        setTimeout(function(){ fetchMapset(++mapset_id); }, 250);
-                 });
-        });
+    console.log("trying to validate key...");
 
-    }).catch(() => {
-        console.log('/s/', mapset_id, 'not found');
-        setTimeout(function(){ fetchMapset(++mapset_id); }, 500);
-    });
+    try{
+        const response = await fetch(`https://osu.ppy.sh/api/get_beatmaps?k=${config.OSU_API_KEY}&limit=1`);
+        const json = await response.json();
+
+        if(json.error){
+            console.error("osu! api key couldn't be validated, api error below:");
+            console.error(json.error);
+        }else{
+            console.log("osu! api key successfully passed validation check!");
+        }
+    }catch(e){
+        console.error("couldn't validate osu! api key, maybe the api is currently unavailable");
+        console.error(e);
+    }
+
+    const connection = mysql.createPool(config.MYSQL);
+    const runSql = util.promisify(connection.query).bind(connection);
+
+    try{
+        await runSql('SELECT * FROM osu_difficulty_attribs');
+        console.log("database set up correctly! everything should be good to go")
+    }catch(e){
+        console.error("couldn't connect to database:");
+        console.error(e.toString());
+    }finally{
+        connection.end();
+    }
+
+    await fs.promises.writeFile('./config.json', JSON.stringify(config, null, 2));
+
+    await rl.close();
+    return;
 }
 
-fetchMapset(1);
+main();

@@ -1,0 +1,1 @@
+require('./beatmap-update-handler.js');

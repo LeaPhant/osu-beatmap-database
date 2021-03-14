@@ -1,0 +1,36 @@
+{
+  "name": "osu-beatmap-database",
+  "version": "1.0.0",
+  "description": "runs an always updated osu! beatmap database with http api",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./src/index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeaPhant/osu-beatmap-database.git"
+  },
+  "keywords": [
+    "osu",
+    "mysql",
+    "nodejs",
+    "polka"
+  ],
+  "author": "LeaPhant",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LeaPhant/osu-beatmap-database/issues"
+  },
+  "homepage": "https://github.com/LeaPhant/osu-beatmap-database#readme",
+  "dependencies": {
+    "@polka/send-type": "^0.5.2",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "mysql": "^2.18.1",
+    "node-fetch": "^2.6.1",
+    "osu-parser": "^0.3.3",
+    "path": "^0.12.7",
+    "polka": "^0.5.2"
+  }
+}
