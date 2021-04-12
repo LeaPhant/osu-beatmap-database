@@ -103,6 +103,9 @@ function calculateEyupStars(){
     }
 
     if (difficulty > 21) {
+        // this part is slightly modified from the original formula:
+        // eyupStars = (Math.min(difficulty, 30) / 3 * 4 + Math.min(20 - 0.032 * Math.pow(noteDensity - 5, 4), 20)) / 10;
+        // -> causes star rating to go down above a certain density hence I capped density
         eyupStars = (Math.min(difficulty, 30) / 3 * 4 + Math.min(20 - 0.032 * Math.pow(Math.min(5, noteDensity) - 5, 4), 20)) / 10;
     } else if (noteDensity >= 2.5) {
         eyupStars = (Math.min(difficulty, 18) / 18 * 10 +
