@@ -95,20 +95,15 @@ function calculateEyupStars(){
     }
 
     if (beatmap.nbSliders / totalHitObjects < 0.1) {
-        console.log('a');
         difficulty = beatmap.HPDrainRate + beatmap.OverallDifficulty + beatmap.CircleSize;
     } else {
-        console.log('b');
         difficulty = 
         (beatmap.HPDrainRate + beatmap.OverallDifficulty + beatmap.CircleSize +
         Math.max(0, (Math.min(4, 1000 / beatmap.timingPoints[0].beatLength * Number(beatmap.SliderMultiplier) - 1.5) * 2.5))) * 0.75;
-        console.log('difficulty', difficulty);
     }
 
     if (difficulty > 21) {
         eyupStars = (Math.min(difficulty, 30) / 3 * 4 + Math.min(20 - 0.032 * Math.pow(Math.min(5, noteDensity) - 5, 4), 20)) / 10;
-
-        console.log('eyup stars', eyupStars);
     } else if (noteDensity >= 2.5) {
         eyupStars = (Math.min(difficulty, 18) / 18 * 10 +
                 Math.min(40 - 40 / Math.pow(5, 3.5) * Math.pow((Math.min(noteDensity, 5) - 5), 4), 40)) / 10;
