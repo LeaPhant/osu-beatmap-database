@@ -84,6 +84,43 @@ function calculateScore(){
     return score;
 }
 
+function calculateEyupStars(){
+    const totalHitObjects = beatmap.nbCircles + 2 * beatmap.nbSliders + 3 * beatmap.nbSpinners;
+    const noteDensity = totalHitObjects / beatmap.drainingTime;
+
+    let difficulty, eyupStars;
+
+    if (totalHitObjects == 0 || beatmap.timingPoints.length == 0) {
+        return 0;
+    }
+
+    if (beatmap.nbSliders / totalHitObjects < 0.1) {
+        console.log('a');
+        difficulty = beatmap.HPDrainRate + beatmap.OverallDifficulty + beatmap.CircleSize;
+    } else {
+        console.log('b');
+        difficulty = 
+        (beatmap.HPDrainRate + beatmap.OverallDifficulty + beatmap.CircleSize +
+        Math.max(0, (Math.min(4, 1000 / beatmap.timingPoints[0].beatLength * Number(beatmap.SliderMultiplier) - 1.5) * 2.5))) * 0.75;
+        console.log('difficulty', difficulty);
+    }
+
+    if (difficulty > 21) {
+        eyupStars = (Math.min(difficulty, 30) / 3 * 4 + Math.min(20 - 0.032 * Math.pow(Math.min(5, noteDensity) - 5, 4), 20)) / 10;
+
+        console.log('eyup stars', eyupStars);
+    } else if (noteDensity >= 2.5) {
+        eyupStars = (Math.min(difficulty, 18) / 18 * 10 +
+                Math.min(40 - 40 / Math.pow(5, 3.5) * Math.pow((Math.min(noteDensity, 5) - 5), 4), 40)) / 10;
+    } else if (noteDensity < 1) {
+        eyupStars = (Math.min(difficulty, 18) / 18 * 10) / 10 + 0.25;
+    } else  {
+        eyupStars = (Math.min(difficulty, 18) / 18 * 10 + Math.min(25 * (noteDensity - 1), 40)) / 10;
+    }
+
+    return Math.min(5, eyupStars);
+}
+
 async function prepareBeatmap(){
     const osuContents = await fs.promises.readFile(beatmap_path, 'utf8');
 
@@ -93,8 +130,13 @@ async function prepareBeatmap(){
     beatmap.OverallDifficulty = beatmap.OverallDifficulty != null ? beatmap.OverallDifficulty : 5;
     beatmap.ApproachRate = beatmap.ApproachRate != null ? beatmap.ApproachRate : beatmap.OverallDifficulty;
     beatmap.HPDrainRate = beatmap.HPDrainRate != null ? beatmap.HPDrainRate : beatmap.OverallDifficulty;
+
+    beatmap.CircleSize = Number(beatmap.CircleSize);
+    beatmap.OverallDifficulty = Number(beatmap.OverallDifficulty);
+    beatmap.ApproachRate = Number(beatmap.ApproachRate);
+    beatmap.HPDrainRate = Number(beatmap.HPDrainRate);
     
-    beatmap.DifficultyPoints = Number(beatmap.CircleSize) + Number(beatmap.OverallDifficulty) + Number(beatmap.HPDrainRate);
+    beatmap.DifficultyPoints = beatmap.CircleSize + beatmap.OverallDifficulty + beatmap.HPDrainRate;
     
     const nobjects = beatmap.nbCircles + beatmap.nbSliders + beatmap.nbSpinners;    
     
@@ -107,8 +149,9 @@ async function prepareBeatmap(){
     processBeatmap();
     
     const score = calculateScore();
+    const eyupStars = calculateEyupStars();
     
-    await runSql('UPDATE beatmap SET max_score = ? WHERE beatmap_id = ?', [score, beatmap_id]);
+    await runSql('UPDATE beatmap SET max_score = ?, eyup_star_rating = ? WHERE beatmap_id = ?', [score, eyupStars, beatmap_id]);
 }
 
 process.on('message', obj => {

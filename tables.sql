@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS `beatmap` (
   `star_rating` double DEFAULT NULL,
   `star_rating_aim` double DEFAULT NULL,
   `star_rating_speed` double DEFAULT NULL,
+  `eyup_star_rating` double DEFAULT NULL,
   `hit_objects` int(11) DEFAULT NULL,
   `num_circles` int(11) DEFAULT NULL,
   `num_sliders` int(11) DEFAULT NULL,

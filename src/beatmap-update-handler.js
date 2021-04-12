@@ -97,7 +97,7 @@ async function upsertBeatmap(b, diffcalc = false){
 
         await exec(`DB_USER=osudb BEATMAPS_PATH="${config.OSU_FILES_PATH}" dotnet ${config.OSU_DIFFCALC_PATH} beatmaps -ac ${b.beatmap_id}`);
         
-        const worker = child_process.fork(path.resolve(__dirname, 'score-calculator.js'));
+        const worker = child_process.fork(path.resolve(__dirname, 'beatmap-processor.js'));
 
         worker.send({
             beatmap_path: osuPath,
