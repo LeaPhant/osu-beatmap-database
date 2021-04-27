@@ -16,6 +16,8 @@ const connection = mysql.createPool(config.MYSQL);
 const runSql = util.promisify(connection.query).bind(connection);
 const exec = util.promisify(child_process.exec);
 
+const sleep = delay => new Promise((resolve) => setTimeout(resolve, delay))
+
 const DIFFICULTY_ATTRIBS = {
     1: 'aim',
     3: 'speed',
@@ -40,17 +42,22 @@ const exists = async path => {
 function md5(path){
     return new Promise((resolve, reject) => {
         const output = crypto.createHash('md5');
-        const input = fs.createReadStream(path);
 
-        input.on('error', (err) => {
-            reject(err);
-        });
+        if(typeof path == 'string'){
+            const input = fs.createReadStream(path);
 
-        output.once('readable', () => {
-            resolve(output.read().toString('hex'));
-        });
+            input.on('error', (err) => {
+                reject(err);
+            });
 
-        input.pipe(output);
+            output.once('readable', () => {
+                resolve(output.read().toString('hex'));
+            });
+
+            input.pipe(output);
+        }else{
+            resolve(output.update(path).digest('hex'));
+        }
     });
 }
 
@@ -90,10 +97,19 @@ async function upsertBeatmap(b, diffcalc = false){
     const osuPath = path.resolve(config.OSU_FILES_PATH, `${b.beatmap_id}.osu`);
 
     if(!(await exists(osuPath)) || diffcalc || await md5(osuPath) != b.file_md5){
-        const beatmapFile = await fetch(`https://osu.ppy.sh/osu/${b.beatmap_id}`);
-        const buf = await beatmapFile.buffer();
+        do{
+            const beatmapFile = await fetch(`https://osu.ppy.sh/osu/${b.beatmap_id}`);
+            const buf = await beatmapFile.buffer();
 
-        await fs.promises.writeFile(osuPath, buf);
+            console.log('md5 compare', await md5(buf), b.file_md5);
+
+            if(await md5(buf) == b.file_md5){
+                await fs.promises.writeFile(osuPath, buf);
+                break;
+            }
+
+            await sleep(2500);
+        }while(true);
 
         await exec(`DB_USER=osudb BEATMAPS_PATH="${config.OSU_FILES_PATH}" dotnet ${config.OSU_DIFFCALC_PATH} beatmaps -ac ${b.beatmap_id}`);
         
