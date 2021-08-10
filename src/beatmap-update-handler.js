@@ -235,17 +235,19 @@ polka()
 .get('/beatmaps', async (req, res) => {   
     const userMode = Number(req.query.mode);
     const mode = userMode >= 0 && userMode <= 3 ? userMode : 0;
-    const params = [];
+    const params = [mode];
     
-    let query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0 AND mode = ?';
+    const query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0 AND mode = ?';
+
+    let filter = '';
 
     if(req.query.from){
-        query += ` AND approved_date > ?`;
+        filter += ` AND approved_date > ?`;
         params.push(new Date(req.query.from).toISOString().slice(0, 19).replace('T', ' '));
     }
 
     if(req.query.to){
-        query += ` AND approved_date < ?`;
+        filter += ` AND approved_date < ?`;
         params.push(new Date(req.query.to).toISOString().slice(0, 19).replace('T', ' '));
     }
 
@@ -260,29 +262,29 @@ polka()
         if(range.length == 1)
             range.push(Math.floor(range[0] + 1));
 
-        query += ` AND star_rating BETWEEN ? and ?`;
+            filter += ` AND star_rating BETWEEN ? and ?`;
 
         params.push(range[0], range[1]);
     }
 
-    const beatmaps = await runSql(query, [mode, ...params]);
+    const beatmaps = await runSql(query + filter, params);
     
     const latestRanked = await runSql(
-        `SELECT beatmapset_id FROM beatmap WHERE approved >= 1 AND approved <= 2 AND mode = ?
+        `SELECT beatmapset_id FROM beatmap WHERE approved >= 1 AND approved <= 2 AND mode = ? ${filter}
             ORDER BY approved_date DESC, beatmapset_id DESC LIMIT 1`,
-            [mode]
+            params
     );
     
     const latestQualified = await runSql(
-        `SELECT beatmapset_id FROM beatmap WHERE approved = 3 AND mode = ?
+        `SELECT beatmapset_id FROM beatmap WHERE approved = 3 AND mode = ? ${filter}
             ORDER BY approved_date DESC, beatmapset_id DESC LIMIT 1`,
-            [mode]
+            params
     );
     
     const latestLoved = await runSql(
-        `SELECT beatmapset_id FROM beatmap WHERE approved = 4 AND mode = ?
+        `SELECT beatmapset_id FROM beatmap WHERE approved = 4 AND mode = ? ${filter}
             ORDER BY approved_date DESC, beatmapset_id DESC LIMIT 1`,
-            [mode]
+            params
     );
 
     const latestRankedSet = await runSql('SELECT * FROM beatmap WHERE beatmapset_id = ? AND mode = ?', [latestRanked[0].beatmapset_id, mode]);
