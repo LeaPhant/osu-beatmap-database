@@ -237,7 +237,7 @@ polka()
     const mode = userMode >= 0 && userMode <= 3 ? userMode : 0;
     const params = [];
     
-    const query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0 AND mode = ?';
+    let query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0 AND mode = ?';
 
     if(req.query.from){
         query += ` AND approved_date > ?`;
