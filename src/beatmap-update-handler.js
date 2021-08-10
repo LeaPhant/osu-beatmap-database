@@ -235,10 +235,37 @@ polka()
 .get('/beatmaps', async (req, res) => {   
     const userMode = Number(req.query.mode);
     const mode = userMode >= 0 && userMode <= 3 ? userMode : 0;
+    const params = [];
     
     const query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0 AND mode = ?';
 
-    const beatmaps = await runSql(query, [mode]);
+    if(req.query.from){
+        query += ` AND approved_date > ?`;
+        params.push(new Date(req.query.from).toISOString().slice(0, 19).replace('T', ' '));
+    }
+
+    if(req.query.to){
+        query += ` AND approved_date < ?`;
+        params.push(new Date(req.query.to).toISOString().slice(0, 19).replace('T', ' '));
+    }
+
+    if(req.query.star_rating){
+        let star_range = req.query.star_rating.split("-");
+
+        const range = [];
+
+        for(const part of star_range)
+            range.push(parseFloat(part));
+
+        if(range.length == 1)
+            range.push(Math.floor(range[0] + 1));
+
+        query += ` AND star_rating BETWEEN ? and ?`;
+
+        params.push(range[0], range[1]);
+    }
+
+    const beatmaps = await runSql(query, [mode, ...params]);
     
     const latestRanked = await runSql(
         `SELECT beatmapset_id FROM beatmap WHERE approved >= 1 AND approved <= 2 AND mode = ?
