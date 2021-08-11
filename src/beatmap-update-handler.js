@@ -237,9 +237,9 @@ polka()
     const mode = userMode >= 0 && userMode <= 3 ? userMode : 0;
     const params = [mode];
     
-    const query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0 AND mode = ?';
+    const query = 'SELECT beatmap_id, approved FROM beatmap WHERE approved > 0';
 
-    let filter = '';
+    let filter = 'AND mode = ?';
 
     if(req.query.from){
         filter += ` AND approved_date > ?`;
@@ -270,26 +270,26 @@ polka()
     const beatmaps = await runSql(query + filter, params);
     
     const latestRanked = await runSql(
-        `SELECT beatmapset_id FROM beatmap WHERE approved >= 1 AND approved <= 2 AND mode = ? ${filter}
+        `SELECT beatmapset_id FROM beatmap WHERE approved >= 1 AND approved <= 2 ${filter}
             ORDER BY approved_date DESC, beatmapset_id DESC LIMIT 1`,
             params
     );
     
     const latestQualified = await runSql(
-        `SELECT beatmapset_id FROM beatmap WHERE approved = 3 AND mode = ? ${filter}
+        `SELECT beatmapset_id FROM beatmap WHERE approved = 3 ${filter}
             ORDER BY approved_date DESC, beatmapset_id DESC LIMIT 1`,
             params
     );
     
     const latestLoved = await runSql(
-        `SELECT beatmapset_id FROM beatmap WHERE approved = 4 AND mode = ? ${filter}
+        `SELECT beatmapset_id FROM beatmap WHERE approved = 4 ${filter}
             ORDER BY approved_date DESC, beatmapset_id DESC LIMIT 1`,
             params
     );
 
-    const latestRankedSet = await runSql('SELECT * FROM beatmap WHERE beatmapset_id = ? AND mode = ?', [latestRanked[0].beatmapset_id, mode]);
-    const latestQualifiedSet = await runSql('SELECT * FROM beatmap WHERE beatmapset_id = ? AND mode = ?', [latestQualified[0].beatmapset_id, mode]);
-    const latestLovedSet = await runSql('SELECT * FROM beatmap WHERE beatmapset_id = ? AND mode = ?', [latestLoved[0].beatmapset_id, mode]);
+    const latestRankedSet = latestRanked.length > 0 ? await runSql(`SELECT * FROM beatmap WHERE beatmapset_id = ? ${filter}`, [latestRanked[0].beatmapset_id, ...params]) : null;
+    const latestQualifiedSet = latestQualified.length > 0 ? await runSql(`SELECT * FROM beatmap WHERE beatmapset_id = ? ${filter}`, [latestQualified[0].beatmapset_id, ...params]) : null;
+    const latestLovedSet = latestLoved.length > 0 ? await runSql(`SELECT * FROM beatmap WHERE beatmapset_id = ? ${filter}`, [latestLoved[0].beatmapset_id, ...params]) : null;
     
     const rankedMaps = beatmaps.filter(a => [1, 2].includes(a.approved));
     const qualifiedMaps = beatmaps.filter(a => a.approved == 3);
