@@ -267,7 +267,7 @@ polka()
         params.push(range[0], range[1]);
     }
 
-    const beatmaps = await runSql(query + filter, params);
+    const beatmaps = await runSql(`${query} ${filter}`, params);
     
     const latestRanked = await runSql(
         `SELECT beatmapset_id FROM beatmap WHERE approved >= 1 AND approved <= 2 ${filter}
