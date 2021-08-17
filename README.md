@@ -48,4 +48,4 @@ Returns arrays with beatmap ids of all ranked/approved, loved and qualified beat
 
 `star_rating` is a range between two numbers. Can also be a single number used as difficulty range.
 
-`tags` are tags seperated by "," searching the database similar to the in-game search.
+`tags` are tags separated by "," searching the database similar to the in-game search.
