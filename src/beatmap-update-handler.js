@@ -267,6 +267,12 @@ polka()
         params.push(range[0], range[1]);
     }
 
+    if(req.query.tags){
+		let tags = req.query.tags.replace(',', '%')
+        filter += ` AND CONCAT(source, '|', tags, '|', artist, '|', title, '|', creator, '|', version) like ?`;
+        params.push('%' + tags + '%');
+    }
+
     const beatmaps = await runSql(`${query} ${filter}`, params);
     
     const latestRanked = await runSql(
