@@ -11,14 +11,6 @@ const runSql = util.promisify(connection.query).bind(connection);
 let beatmap_path, beatmap, beatmap_id;
 
 
-function calculateScore(){
-    let score = 0;
-
-    score = beatmap.maxScore;
-    
-    return score;
-}
-
 function calculateEyupStars(){
     const totalHitObjects = beatmap.countCircles + 2 * beatmap.countSliders + 3 * beatmap.countSpinners;
     const noteDensity = totalHitObjects / beatmap.drainLength;
@@ -70,7 +62,7 @@ async function prepareBeatmap(){
     
     beatmap.DifficultyPoints = beatmap.cs + beatmap.od + beatmap.hp;    
       
-    const score = calculateScore();
+    const score = beatmap.maxScore;
     const eyupStars = calculateEyupStars();
     
     await runSql('UPDATE beatmap SET max_score = ?, eyup_star_rating = ? WHERE beatmap_id = ?', [score, eyupStars, beatmap_id]);
