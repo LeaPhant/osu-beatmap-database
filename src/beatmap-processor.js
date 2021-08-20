@@ -64,7 +64,14 @@ async function prepareBeatmap(){
     const score = beatmap.maxScore;
     const eyupStars = calculateEyupStars();
 
-    const tags = new Set(beatmap.tags.split(' '));
+    const tags = new Set();
+
+    if (beatmap.tags != null && beatmap.tags.length > 0) {
+        const tagsArray = typeof beatmap.tags === 'string' 
+        ? beatmap.tags.split(' ') : beatmap.tags;
+
+        tagArray.forEach(item => tags.add(item));
+    }
 
     const beatmapObj = await runSql('SELECT tags FROM beatmap WHERE beatmap_id = ?', [beatmap_id]);
 
