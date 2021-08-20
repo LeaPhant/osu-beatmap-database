@@ -1,4 +1,4 @@
-const bparser = require("bparser-js");
+const bparser = require('bparser-js');
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
@@ -47,7 +47,6 @@ function calculateEyupStars(){
 }
 
 async function prepareBeatmap(){
-
     beatmap = new bparser.BeatmapParser(beatmap_path);
 
     beatmap.cs = beatmap.cs != null ? beatmap.cs : 5;
@@ -64,8 +63,16 @@ async function prepareBeatmap(){
       
     const score = beatmap.maxScore;
     const eyupStars = calculateEyupStars();
+
+    const tags = new Set(beatmap.tags);
+
+    const beatmapObj = await runSql('SELECT tags FROM beatmap WHERE beatmap_id = ?', [beatmap_id]);
+
+    if (beatmapObj.length > 0) {
+        beatmapObj[0].tags.split(' ').forEach(item => tags.add(item));
+    }
     
-    await runSql('UPDATE beatmap SET max_score = ?, eyup_star_rating = ? WHERE beatmap_id = ?', [score, eyupStars, beatmap_id]);
+    await runSql('UPDATE beatmap SET max_score = ?, eyup_star_rating = ?, tags = ? WHERE beatmap_id = ?', [score, eyupStars, beatmap_id, [...tags].join(' ')]);
 }
 
 process.on('message', obj => {
