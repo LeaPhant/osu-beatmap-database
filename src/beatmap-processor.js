@@ -70,7 +70,7 @@ async function prepareBeatmap(){
         const tagsArray = typeof beatmap.tags === 'string' 
         ? beatmap.tags.split(' ') : beatmap.tags;
 
-        tagArray.forEach(item => tags.add(item));
+        tagsArray.forEach(item => tags.add(item));
     }
 
     const beatmapObj = await runSql('SELECT tags FROM beatmap WHERE beatmap_id = ?', [beatmap_id]);
