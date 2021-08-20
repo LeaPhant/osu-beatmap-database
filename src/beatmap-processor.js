@@ -64,7 +64,7 @@ async function prepareBeatmap(){
     const score = beatmap.maxScore;
     const eyupStars = calculateEyupStars();
 
-    const tags = new Set(beatmap.tags);
+    const tags = new Set(beatmap.tags.split(' '));
 
     const beatmapObj = await runSql('SELECT tags FROM beatmap WHERE beatmap_id = ?', [beatmap_id]);
 
@@ -72,7 +72,7 @@ async function prepareBeatmap(){
         beatmapObj[0].tags.split(' ').forEach(item => tags.add(item));
     }
     
-    await runSql('UPDATE beatmap SET max_score = ?, eyup_star_rating = ?, tags = ? WHERE beatmap_id = ?', [score, eyupStars, beatmap_id, [...tags].join(' ')]);
+    await runSql('UPDATE beatmap SET max_score = ?, eyup_star_rating = ?, tags = ? WHERE beatmap_id = ?', [score, eyupStars, [...tags].join(' '), beatmap_id]);
 }
 
 process.on('message', obj => {
