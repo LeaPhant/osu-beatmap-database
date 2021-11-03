@@ -26,7 +26,8 @@ const DIFFICULTY_ATTRIBS = {
     9: 'max_combo',
     11: 'total',
     13: 'hit_window_300',
-    15: 'score_multiplier'
+    15: 'score_multiplier',
+    17: 'flashlight_rating'
 };
 
 const exists = async path => {

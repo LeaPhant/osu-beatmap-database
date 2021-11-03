@@ -130,3 +130,4 @@ VALUES
   (11, 'Strain', 1),
   (13, 'Hit window 300', 0),
   (15, 'Score multiplier', 0)
+  (17, 'Flashlight rating', 1)
