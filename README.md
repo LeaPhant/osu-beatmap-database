@@ -5,7 +5,9 @@ tool for keeping an up-to-date database of all ranked/approved/loved/qualified b
 - Linux system with root access
 - MySQL Server (recommendation: https://mariadb.org/), should be set up for root access without password otherwise you need to edit setup.sh
 - [Node.js](https://nodejs.org/)
-- [Microsoft .NET](https://dotnet.microsoft.com/download) (runs on all platforms)
+- [Microsoft .NET 6.0.400+](https://dotnet.microsoft.com/download](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+  - Make sure to use [dotnet-install](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-install-script) instead of your package manager to get the latest version.
+  - Arch Linux: `yay -S dotnet-install` -> `sudo dotnet-install --install-dir /usr/share/dotnet -v 6.0.418`
 - osu! API Key (get one [here](https://osu.ppy.sh/p/api))
 
 ### Setup
