@@ -28,6 +28,36 @@ Then start the service to keep the beatmaps up-to-date and run the http server
 pm2 start --name osu-beatmap-database ./src/index
 ```
 
+### Updating and recalculating
+
+#### First-time only:
+Install dependencies `jq screen` (Arch Linux: `sudo pacman -Sy jq screen`).
+
+```Bash
+cd files
+git clone https://github.com/ppy/osu.git
+cd osu-difficulty-calculator
+./UseLocalOsu.sh
+```
+If you run this as a user (which you should), you'll also have to let it access the build files (example user `osudb`) since they were created as root:
+```Bash
+sudo chown -R osudb:osudb /home/osudb/files/
+```
+
+#### Every time:
+
+Check [this](https://github.com/ppy/osu-infrastructure/wiki/Star-Rating-and-Performance-Points) for the current deployment versions.
+```Bash
+cd files/osu
+git checkout <current osu deployment version>
+cd ..
+cd osu-difficulty-calculator
+git checkout <current osu-difficulty-calculator deployment version>
+dotnet build --configuration Release
+cd ../..
+screen -dmS recalc bash -c "DB_USER=`jq -r '.MYSQL.user' ./config.json` BEATMAPS_PATH=`jq -r '.OSU_FILES_PATH' ./config.json` dotnet `jq -r '.OSU_DIFFCALC_PATH' ./config.json` all -ac -c `nproc`"
+```
+Check progress with `screen -r recalc` (exit with Ctrl+A D). If the screen no longer exists it finished.
 ### API
 
 Unless you changed the port the API will be available on http://127.0.0.1:16791 with the following endpoints:
